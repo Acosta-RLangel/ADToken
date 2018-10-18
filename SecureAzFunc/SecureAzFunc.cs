@@ -16,8 +16,6 @@ namespace SecureAzFunc
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            var nameHeader = req.Headers["X-MS-CLIENT-PRINCIPAL-NAME"].ToString();
-
             JsonWebTokenHandler handler = new JsonWebTokenHandler();
             string tokenString = req.Headers["X-MS-TOKEN-AAD-ID-TOKEN"].ToString();
 
@@ -33,8 +31,13 @@ namespace SecureAzFunc
             });
 
             var claimString = sb.ToString();
-            string[] nameparts = nameHeader.Split('@');
-            var name = nameparts[0];
+
+            var nameClaim = token.Claims.Where(c => c.Type == "given_name").FirstOrDefault();
+
+            var name = string.Empty;
+
+            if (nameClaim != null)
+                name = nameClaim.Value;
 
             return new OkObjectResult($"Hello, {name}.{System.Environment.NewLine}{System.Environment.NewLine}CLAIMS:{System.Environment.NewLine}{claimString}");
         }
